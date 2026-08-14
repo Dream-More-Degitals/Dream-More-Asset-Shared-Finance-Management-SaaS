@@ -202,21 +202,23 @@ export default function AIInsightsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#6b7280' }} />
                   <YAxis tick={{ fontSize: 10, fill: '#6b7280' }} />
-                  <Tooltip 
-                    content={({ active, payload, label }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-3">
-                            <p className="text-xs font-medium text-gray-500">{label}</p>
-                            <p className="text-sm font-semibold text-orange-600">
-                              ${payload[0].value.toLocaleString()}
-                            </p>
-                          </div>
-                        )
-                      }
-                      return null
-                    }}
-                  />
+<Tooltip 
+  content={({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-3">
+          <p className="text-xs font-medium text-gray-500">{label}</p>
+          {payload.map((item: any) => (
+            <p key={item.name} className="text-sm font-semibold" style={{ color: item.color }}>
+              {item.name}: {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
+            </p>
+          ))}
+        </div>
+      )
+    }
+    return null
+  }}
+/>
                   <Bar dataKey="cost" fill="#f97316" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

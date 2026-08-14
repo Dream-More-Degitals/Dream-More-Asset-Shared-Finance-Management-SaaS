@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { User, AuthContextType, LoginCredentials, UserRole } from './types'
 import { authService } from './auth.service'
-import { hasPermission as checkPermission } from '../config/permissions'
+import { hasPermission as checkPermission } from '@/config/permissions'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -18,36 +18,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Check for existing session on mount
   useEffect(() => {
-    const initAuth = () => {
-      try {
-        const currentUser = authService.getCurrentUser()
-        console.log('Init auth - currentUser:', currentUser) // Debug log
-        if (currentUser) {
-          setUser(currentUser)
-          setIsAuthenticated(true)
-        }
-      } catch (error) {
-        console.error('Init auth error:', error)
-      } finally {
-        setIsLoading(false)
+    try {
+      const currentUser = authService.getCurrentUser()
+      if (currentUser) {
+        setUser(currentUser)
+        setIsAuthenticated(true)
       }
+    } catch (error) {
+      console.error('Auth init error:', error)
+    } finally {
+      setIsLoading(false)
     }
-
-    initAuth()
   }, [])
 
   // Login function
   const login = async (credentials: LoginCredentials): Promise<User> => {
     setIsLoading(true)
     try {
-      console.log('AuthContext login called with:', credentials.email) // Debug log
       const loggedInUser = await authService.login(credentials)
-      console.log('AuthContext - user logged in:', loggedInUser) // Debug log
       setUser(loggedInUser)
       setIsAuthenticated(true)
       return loggedInUser
     } catch (error: any) {
-      console.error('AuthContext login error:', error)
+      console.error('Login error:', error)
       throw error
     } finally {
       setIsLoading(false)
@@ -59,7 +52,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authService.logout()
     setUser(null)
     setIsAuthenticated(false)
-    console.log('AuthContext - user logged out') // Debug log
   }
 
   // Check if user has permission

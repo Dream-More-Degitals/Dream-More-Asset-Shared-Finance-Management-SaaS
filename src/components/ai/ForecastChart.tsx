@@ -12,7 +12,7 @@ import {
   Area,
   ComposedChart,
 } from 'recharts'
-import { ActivityItem } from '../../types/ai'
+import { ForecastData } from '../../types/ai'
 
 interface ForecastChartProps {
   data: ForecastData[]
@@ -29,7 +29,7 @@ export function ForecastChart({ data, title, description, className = '' }: Fore
           <p className="text-xs font-medium text-gray-500">{label}</p>
           {payload.map((item: any) => (
             <p key={item.name} className="text-sm font-semibold" style={{ color: item.color }}>
-              {item.name}: ${item.value.toLocaleString()}
+              {item.name}: ${typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
             </p>
           ))}
         </div>

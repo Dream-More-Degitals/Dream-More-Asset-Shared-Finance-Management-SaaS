@@ -1,19 +1,19 @@
 'use client'
 
-import { ActivityItem } from '../../types/ai'
+import { Recommendation } from '@/types/ai'
 import { Wrench, DollarSign, TrendingUp, ArrowRight } from 'lucide-react'
 
 interface RecommendationCardProps extends Recommendation {
   className?: string
 }
 
-const iconMap = {
+const iconMap: Record<string, any> = {
   maintenance: Wrench,
   optimization: DollarSign,
   investment: TrendingUp,
 }
 
-const colorMap = {
+const colorMap: Record<string, string> = {
   maintenance: 'from-red-500 to-orange-500',
   optimization: 'from-green-500 to-emerald-500',
   investment: 'from-blue-500 to-purple-500',

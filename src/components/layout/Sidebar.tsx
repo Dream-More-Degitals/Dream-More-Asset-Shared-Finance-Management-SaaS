@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -19,9 +19,9 @@ import {
   Bell,
   LogOut,
 } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
-import { getSidebarItemsForRole } from '../../config/sidebar.config'
-import { UserRole } from '../../auth/types'
+import { useAuth } from '@/hooks/useAuth'
+import { getSidebarItemsForRole } from '@/config/sidebar.config'
+import { UserRole } from '@/auth/types'
 
 interface SidebarProps {
   sidebarOpen: boolean
@@ -39,37 +39,49 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
     window.location.href = '/login'
   }
 
+  // If no user, show a minimal sidebar
+  if (!user) {
+    return (
+      <aside className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 transition-all duration-300 z-50 ${sidebarOpen ? 'w-64' : 'w-20'}`}>
+        <div className="flex flex-col h-full">
+          <div className="flex items-center px-4 h-16 border-b border-gray-200">
+            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white font-bold text-sm">
+              D
+            </div>
+            {sidebarOpen && <span className="ml-2 text-sm font-bold">D-AssetPro</span>}
+          </div>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-6 h-6 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </aside>
+    )
+  }
+
   return (
-    <aside className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 transition-all duration-300 z-50 ${
-      sidebarOpen ? 'w-64' : 'w-20'
-    }`}>
+    <aside className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 transition-all duration-300 z-50 ${sidebarOpen ? 'w-64' : 'w-20'}`}>
       <div className="flex flex-col h-full">
-        {/* Logo Section - No arrow toggle button */}
+        {/* Logo Section - Larger Logo */}
         <div className="flex items-center px-4 h-16 border-b border-gray-200 flex-shrink-0">
-          <Link href={user?.role === 'ADMIN' ? '/dashboard' : 
-                      user?.role === 'FINANCE_OFFICER' ? '/finance' :
-                      user?.role === 'ASSET_MANAGER' ? '/assets' :
-                      user?.role === 'SHAREHOLDER' ? '/investments' :
-                      user?.role === 'PROCUREMENT_OFFICER' ? '/procurement' : '/dashboard'} 
-                className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center flex-shrink-0 overflow-hidden border border-gray-200">
+          <Link href="/dashboard" className="flex items-center gap-3 min-w-0">
+            <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image 
                 src="/images/D-AssetPro logo.png" 
                 alt="D-AssetPro" 
-                width={32} 
-                height={32}
+                width={50} 
+                height={50}
                 className="object-contain"
                 priority
               />
             </div>
             <div className={sidebarOpen ? 'block' : 'hidden'}>
               <div className="text-sm font-bold text-gray-900 leading-tight">D-AssetPro</div>
-              <div className="text-[10px] text-gray-400 font-medium tracking-wider">ENTERPRISE</div>
+              <div className="text-[10px] text-gray-400 font-medium tracking-wider">ENTERPRISE MANAGEMENT</div>
             </div>
           </Link>
         </div>
 
-        {/* Navigation - Dynamic based on role */}
+        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="space-y-1">
             {sidebarItems.map((item) => {
@@ -98,7 +110,7 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
           </ul>
         </nav>
 
-        {/* Bottom Section - Only Logout button */}
+        {/* Bottom Section - Logout */}
         <div className="border-t border-gray-200 p-4 flex-shrink-0">
           <button
             onClick={handleLogout}

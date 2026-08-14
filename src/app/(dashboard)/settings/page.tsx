@@ -1,8 +1,10 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   ChevronDown,
   Plus,
@@ -37,41 +39,108 @@ import {
   Key,
   Eye,
   EyeOff,
-} from 'lucide-react'
+  User,
+  LogOut,
+  HelpCircle,
+} from "lucide-react";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState('general')
-  const [showPassword, setShowPassword] = useState(false)
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true)
-  const [offlineMode, setOfflineMode] = useState(false)
-  const [autoInstall, setAutoInstall] = useState(false)
-  const [emailAlerts, setEmailAlerts] = useState(true)
-  const [pushNotifications, setPushNotifications] = useState(true)
-  const [smsNotifications, setSmsNotifications] = useState(false)
-  const [theme, setTheme] = useState('light')
-  const [language, setLanguage] = useState('English (US)')
-  const [timezone, setTimezone] = useState('UTC-08:00 Pacific Time (US & C)')
-  const [dateFormat, setDateFormat] = useState('MM/DD/YYYY')
-  const [sessionTimeout, setSessionTimeout] = useState('30')
-  const [maxLoginAttempts, setMaxLoginAttempts] = useState('5')
-  const [aiConfidenceThreshold, setAiConfidenceThreshold] = useState('85')
-  const [companyName, setCompanyName] = useState('DreamMore Enterprises')
-  const [businessEmail, setBusinessEmail] = useState('ops@dreammore.corp')
-  const [phoneNumber, setPhoneNumber] = useState('+1 (555) 012-3456')
-  const [officeAddress, setOfficeAddress] = useState('789 Innovation Way, Palo Alto, CA')
+  const router = useRouter();
+  const { user, logout } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
+  
+  const [activeTab, setActiveTab] = useState(isAdmin ? "general" : "security");
+  const [showPassword, setShowPassword] = useState(false);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+  const [offlineMode, setOfflineMode] = useState(false);
+  const [autoInstall, setAutoInstall] = useState(false);
+  const [emailAlerts, setEmailAlerts] = useState(true);
+  const [pushNotifications, setPushNotifications] = useState(true);
+  const [smsNotifications, setSmsNotifications] = useState(false);
+  const [theme, setTheme] = useState("light");
+  const [language, setLanguage] = useState("English (US)");
+  const [timezone, setTimezone] = useState("UTC-08:00 Pacific Time (US & C)");
+  const [dateFormat, setDateFormat] = useState("MM/DD/YYYY");
+  const [sessionTimeout, setSessionTimeout] = useState("30");
+  const [maxLoginAttempts, setMaxLoginAttempts] = useState("5");
+  const [aiConfidenceThreshold, setAiConfidenceThreshold] = useState("85");
+  const [companyName, setCompanyName] = useState("DreamMore Enterprises");
+  const [businessEmail, setBusinessEmail] = useState("ops@dreammore.corp");
+  const [phoneNumber, setPhoneNumber] = useState("+1 (555) 012-3456");
+  const [officeAddress, setOfficeAddress] = useState("789 Innovation Way, Palo Alto, CA");
 
-  // Tabs
-  const tabs = [
-    { id: 'general', label: 'General', icon: SettingsIcon },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'ai', label: 'AI & Intelligence', icon: Sparkles },
-    { id: 'backup', label: 'Backup & Recovery', icon: Database },
-    { id: 'appearance', label: 'Appearance', icon: Globe },
-  ]
+  // Tabs - Hide General and AI & Intelligence for non-admins
+  const allTabs = [
+    { id: "general", label: "General", icon: SettingsIcon, adminOnly: true },
+    { id: "security", label: "Security", icon: Shield, adminOnly: false },
+    { id: "notifications", label: "Notifications", icon: Bell, adminOnly: false },
+    { id: "ai", label: "AI & Intelligence", icon: Sparkles, adminOnly: true },
+    { id: "backup", label: "Backup & Recovery", icon: Database, adminOnly: false },
+    { id: "appearance", label: "Appearance", icon: Globe, adminOnly: false },
+  ];
+
+  // Filter tabs based on user role
+  const tabs = allTabs.filter(tab => !tab.adminOnly || isAdmin);
+
+  // Show toast notification
+  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error' | 'info', text: string } | null>(null);
+
+  const showToast = (type: 'success' | 'error' | 'info', text: string) => {
+    setToastMessage({ type, text });
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  // Get user initials
+  const getUserInitials = () => {
+    if (!user) return "JD";
+    return user.name.split(" ").map(n => n[0]).join("");
+  };
+
+  // Get role display name
+  const getRoleDisplay = (role: string) => {
+    const roleMap: Record<string, string> = {
+      "ADMIN": "Global Administrator",
+      "FINANCE_OFFICER": "Finance Officer",
+      "ASSET_MANAGER": "Asset Manager",
+      "SHAREHOLDER": "Shareholder",
+      "PROCUREMENT_OFFICER": "Procurement Officer",
+    };
+    return roleMap[role] || role;
+  };
+
+  const handleSaveAll = () => {
+    showToast("success", "All settings saved successfully!");
+  };
+
+  const handleResetDefault = () => {
+    showToast("info", "Settings reset to default");
+  };
+
+  const handleCancel = () => {
+    router.push("/dashboard");
+  };
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className={`fixed top-20 right-4 z-50 px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 animate-slide-in ${
+          toastMessage.type === "success" ? "bg-green-50 border border-green-200 text-green-700" :
+          toastMessage.type === "error" ? "bg-red-50 border border-red-200 text-red-700" :
+          "bg-blue-50 border border-blue-200 text-blue-700"
+        }`}>
+          {toastMessage.type === "success" && <Check className="w-4 h-4" />}
+          {toastMessage.type === "error" && <AlertCircle className="w-4 h-4" />}
+          {toastMessage.type === "info" && <Clock className="w-4 h-4" />}
+          <span className="text-sm font-medium">{toastMessage.text}</span>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -79,15 +148,24 @@ export default function SettingsPage() {
           <p className="text-sm text-gray-500">Manage your organization's settings and preferences</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          <button
+            onClick={handleResetDefault}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
             <RefreshCw className="w-4 h-4" />
             Reset to Default
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          <button
+            onClick={handleCancel}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
             <X className="w-4 h-4" />
             Cancel
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/25">
+          <button
+            onClick={handleSaveAll}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/25"
+          >
             <Save className="w-4 h-4" />
             Save All Changes
           </button>
@@ -102,7 +180,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs - Dynamic based on user role */}
       <div className="border-b border-gray-200">
         <nav className="flex gap-6 overflow-x-auto">
           {tabs.map((tab) => (
@@ -111,8 +189,8 @@ export default function SettingsPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 pb-4 px-1 text-sm font-medium transition-colors border-b-2 ${
                 activeTab === tab.id
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? "border-orange-500 text-orange-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -124,8 +202,8 @@ export default function SettingsPage() {
 
       {/* Content Area */}
       <div className="space-y-6">
-        {/* General Section */}
-        {activeTab === 'general' && (
+        {/* General Section - Admin Only */}
+        {activeTab === "general" && isAdmin && (
           <div className="space-y-6">
             {/* Company Information */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -138,13 +216,13 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
-                      <Image 
-                        src="/images/D_More logo.jpg" 
-                        alt="Company Logo" 
-                        width={48} 
-                        height={48}
-                        className="object-contain"
-                      />
+<Image 
+  src="/images/D-AssetPro logo.png" 
+  alt="DreamMore" 
+  width={40} 
+  height={40}
+  className="object-contain"
+/>
                     </div>
                     <div>
                       <button className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
@@ -218,7 +296,7 @@ export default function SettingsPage() {
                   <p className="text-xs text-gray-500">Configure authentication and access control policies.</p>
                 </div>
                 <button 
-                  onClick={() => setActiveTab('security')}
+                  onClick={() => setActiveTab("security")}
                   className="text-sm text-orange-600 hover:text-orange-700 font-medium"
                 >
                   Configure →
@@ -233,8 +311,8 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Security Section */}
-        {activeTab === 'security' && (
+        {/* Security Section - All Users */}
+        {activeTab === "security" && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Security Settings</h3>
@@ -256,7 +334,7 @@ export default function SettingsPage() {
                     onChange={() => setTwoFactorEnabled(!twoFactorEnabled)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
                 </label>
               </div>
 
@@ -302,7 +380,10 @@ export default function SettingsPage() {
 
               {/* Security Audit Logs */}
               <div className="mt-4">
-                <button className="text-sm text-orange-600 hover:text-orange-700 font-medium flex items-center gap-1">
+                <button 
+                  onClick={() => showToast("info", "Security audit logs opened!")}
+                  className="text-sm text-orange-600 hover:text-orange-700 font-medium flex items-center gap-1"
+                >
                   View Security Audit Logs
                   <ChevronDown className="w-3 h-3" />
                 </button>
@@ -311,14 +392,13 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Notifications Section */}
-        {activeTab === 'notifications' && (
+        {/* Notifications Section - All Users */}
+        {activeTab === "notifications" && (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Notification Channels</h3>
             <p className="text-sm text-gray-500 mb-6">Decide how the system communicates critical alerts.</p>
 
             <div className="space-y-4">
-              {/* Email Alerts */}
               <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
                 <input
                   type="checkbox"
@@ -332,7 +412,6 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Push Notifications */}
               <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
                 <input
                   type="checkbox"
@@ -346,7 +425,6 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* SMS Notifications */}
               <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
                 <input
                   type="checkbox"
@@ -363,8 +441,8 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* AI & Intelligence Section */}
-        {activeTab === 'ai' && (
+        {/* AI & Intelligence Section - Admin Only */}
+        {activeTab === "ai" && isAdmin && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">AI & Intelligence Engines</h3>
@@ -461,8 +539,8 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Backup & Recovery Section */}
-        {activeTab === 'backup' && (
+        {/* Backup & Recovery Section - All Users */}
+        {activeTab === "backup" && (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Data Backup & Recovery</h3>
             <p className="text-sm text-gray-500 mb-6">Protect your data with scheduled snapshots and manual controls.</p>
@@ -480,11 +558,17 @@ export default function SettingsPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={() => showToast("success", "Manual backup started!")}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
                   <Cloud className="w-4 h-4" />
                   Manual Backup Now
                 </button>
-                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={() => showToast("info", "Restore backup dialog opened!")}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
                   <RefreshCw className="w-4 h-4" />
                   Restore Previous Backup
                 </button>
@@ -493,8 +577,8 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Appearance Section */}
-        {activeTab === 'appearance' && (
+        {/* Appearance Section - All Users */}
+        {activeTab === "appearance" && (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Global Appearance</h3>
             <p className="text-sm text-gray-500 mb-6">Customize the interface look and locale settings.</p>
@@ -505,22 +589,22 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Interface Theme</label>
                 <div className="flex gap-4">
                   <button
-                    onClick={() => setTheme('light')}
+                    onClick={() => setTheme("light")}
                     className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm transition-colors ${
-                      theme === 'light' 
-                        ? 'border-orange-500 bg-orange-50 text-orange-600' 
-                        : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                      theme === "light" 
+                        ? "border-orange-500 bg-orange-50 text-orange-600" 
+                        : "border-gray-200 hover:bg-gray-50 text-gray-700"
                     }`}
                   >
                     <Sun className="w-4 h-4" />
                     Light Mode
                   </button>
                   <button
-                    onClick={() => setTheme('dark')}
+                    onClick={() => setTheme("dark")}
                     className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm transition-colors ${
-                      theme === 'dark' 
-                        ? 'border-orange-500 bg-orange-50 text-orange-600' 
-                        : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                      theme === "dark" 
+                        ? "border-orange-500 bg-orange-50 text-orange-600" 
+                        : "border-gray-200 hover:bg-gray-50 text-gray-700"
                     }`}
                   >
                     <Moon className="w-4 h-4" />
@@ -578,7 +662,50 @@ export default function SettingsPage() {
         )}
       </div>
 
-      
+      {/* Profile Section - Always visible */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Account</h3>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-lg">
+              {getUserInitials()}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{user?.name || "User"}</p>
+              <p className="text-xs text-gray-500">{user?.email || "user@dassetpro.com"}</p>
+              <p className="text-[10px] text-orange-600 font-medium">
+                {user?.role ? getRoleDisplay(user.role) : "User"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/profile"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <User className="w-4 h-4" />
+              View Profile
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors text-sm font-medium"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-4 text-xs text-gray-400">
+        <span>D-AssetPro Enterprise © 2026. All rights reserved.</span>
+        <div className="flex items-center gap-6">
+          <Link href="/privacy" className="hover:text-gray-600 transition-colors">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-gray-600 transition-colors">Terms of Service</Link>
+          <Link href="/support" className="hover:text-gray-600 transition-colors">Contact Support</Link>
+        </div>
+      </div>
     </div>
-  )
+  );
 }

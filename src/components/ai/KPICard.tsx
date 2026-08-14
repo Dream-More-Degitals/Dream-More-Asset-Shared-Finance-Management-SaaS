@@ -1,9 +1,9 @@
 'use client'
 
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
-import { ActivityItem } from '../../types/ai'
+import { KPIData } from '../../types/ai'
 
-interface KPICardProps extends KPIData {
+export interface KPICardProps extends KPIData {
   className?: string
 }
 

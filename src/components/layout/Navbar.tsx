@@ -1,10 +1,10 @@
 'use client'
 
 import { Menu, Bell, Search } from 'lucide-react'
-import { useSidebar } from '@/hooks/use-sidebar'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useSidebar } from '../../hooks/use-sidebar'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar'
 
 export function Navbar() {
   const { toggle } = useSidebar()

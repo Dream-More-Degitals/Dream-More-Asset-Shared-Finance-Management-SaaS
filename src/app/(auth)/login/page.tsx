@@ -53,8 +53,8 @@ export default function LoginPage() {
                     <Image 
                       src="/images/D-AssetPro logo.png" 
                       alt="D-AssetPro logo" 
-                      width={50} 
-                      height={50}
+                      width={65} 
+                      height={65}
                       className="object-contain"
                     />
                   </div>

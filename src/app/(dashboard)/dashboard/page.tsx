@@ -336,20 +336,20 @@ export default function DashboardPage() {
               <XAxis dataKey="year" tick={{ fontSize: 10, fill: '#6b7280' }} />
               <YAxis tick={{ fontSize: 10, fill: '#6b7280' }} />
               <Tooltip 
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-                        <p className="text-xs font-medium text-gray-500">{label}</p>
-                        <p className="text-sm font-semibold text-orange-600">
-                          ${payload[0].value.toLocaleString()}
-                        </p>
-                      </div>
-                    )
-                  }
-                  return null
-                }}
-              />
+  content={({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+          <p className="text-xs font-medium text-gray-500">{label}</p>
+          <p className="text-sm font-semibold text-orange-600">
+            ${payload[0]?.value ? payload[0].value.toLocaleString() : '0'}
+          </p>
+        </div>
+      )
+    }
+    return null
+  }}
+/>
               <Line 
                 type="monotone" 
                 dataKey="value" 

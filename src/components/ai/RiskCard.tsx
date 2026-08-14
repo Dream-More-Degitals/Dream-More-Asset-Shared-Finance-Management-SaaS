@@ -1,6 +1,6 @@
 'use client'
 
-import { ActivityItem } from '../../types/ai'
+import { RiskData } from '@/types/ai'
 
 interface RiskCardProps extends RiskData {
   className?: string

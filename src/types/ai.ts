@@ -16,17 +16,6 @@ export interface ForecastData {
   predicted?: number
 }
 
-export interface MaintenanceData {
-  month: string
-  cost: number
-}
-
-export interface InvestmentData {
-  month: string
-  roi: number
-  projected?: number
-}
-
 export interface Recommendation {
   id: string
   title: string
