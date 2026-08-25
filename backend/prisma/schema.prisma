@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  password     String
+  role         Role     @default(PROCUREMENT_OFFICER)
+  department   String?
+  status       Status   @default(ACTIVE)
+  lastLogin    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  assets       Asset[]
+  notifications Notification[]
+  activities   Activity[]
+}
+
+model Asset {
+  id           String   @id @default(cuid())
+  name         String
+  category     String
+  department   String
+  purchaseDate DateTime
+  value        Float
+  status       AssetStatus @default(ACTIVE)
+  description  String?
+  serialNumber String?
+  location     String?
+  manufacturer String?
+  model        String?
+  warrantyExpiry DateTime?
+  assignedTo   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  type        TransactionType
+  category    String
+  amount      Float
+  date        DateTime
+  department  String
+  status      TransactionStatus @default(PENDING)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Investment {
+  id             String   @id @default(cuid())
+  name           String
+  assetClass     String
+  amountInvested Float
+  currentValue   Float
+  roi            Float
+  risk           RiskLevel @default(MEDIUM)
+  status         InvestmentStatus @default(ACTIVE)
+  description    String?
+  fundManager    String?
+  location       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ProcurementRequest {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  department  String
+  requestedBy String
+  amount      Float
+  priority    Priority @default(MEDIUM)
+  status      ProcurementStatus @default(DRAFT)
+  description String?
+  vendor      String?
+  deliveryDate DateTime?
+  justification String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Shareholder {
+  id         String   @id @default(cuid())
+  name       String
+  company    String
+  shares     Float
+  ownership  Float
+  investment Float
+  dividend   Float?
+  status     ShareholderStatus @default(ACTIVE)
+  email      String?
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Meeting {
+  id         String   @id @default(cuid())
+  title      String
+  type       MeetingType @default(BOARD)
+  date       DateTime
+  time       String
+  duration   Int
+  attendees  Int
+  status     MeetingStatus @default(SCHEDULED)
+  department String?
+  location   String?
+  agenda     String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  message    String
+  type       NotificationType @default(INFO)
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String
+  description String
+  timestamp   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  ADMIN
+  FINANCE_OFFICER
+  ASSET_MANAGER
+  SHAREHOLDER
+  PROCUREMENT_OFFICER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum AssetStatus {
+  ACTIVE
+  MAINTENANCE
+  RETIRED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionStatus {
+  SUCCESS
+  PENDING
+  FAILED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum InvestmentStatus {
+  ACTIVE
+  EXITED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ProcurementStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  COMPLETED
+  CANCELLED
+}
+
+enum ShareholderStatus {
+  ACTIVE
+  PENDING
+  INACTIVE
+}
+
+enum MeetingType {
+  BOARD
+  COMMITTEE
+  AUDIT
+  SHAREHOLDER
+  EXECUTIVE
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
