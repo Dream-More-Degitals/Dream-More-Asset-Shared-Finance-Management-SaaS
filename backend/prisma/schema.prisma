@@ -8,47 +8,45 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  password     String
-  role         Role     @default(PROCUREMENT_OFFICER)
-  department   String?
-  status       Status   @default(ACTIVE)
-  lastLogin    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  // Relations
-  assets       Asset[]
-  notifications Notification[]
-  activities   Activity[]
+  id                 String         @id @default(cuid())
+  name               String
+  email              String         @unique
+  password           String
+  role               Role           @default(PROCUREMENT_OFFICER)
+  department         String?
+  status             Status         @default(ACTIVE)
+  lastLogin          DateTime?
+  mustChangePassword Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  activities         Activity[]
+  assets             Asset[]
+  notifications      Notification[]
 }
 
 model Asset {
-  id           String   @id @default(cuid())
-  name         String
-  category     String
-  department   String
-  purchaseDate DateTime
-  value        Float
-  status       AssetStatus @default(ACTIVE)
-  description  String?
-  serialNumber String?
-  location     String?
-  manufacturer String?
-  model        String?
+  id             String      @id @default(cuid())
+  name           String
+  category       String
+  department     String
+  purchaseDate   DateTime
+  value          Float
+  status         AssetStatus @default(ACTIVE)
+  description    String?
+  serialNumber   String?
+  location       String?
+  manufacturer   String?
+  model          String?
   warrantyExpiry DateTime?
-  assignedTo   String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  userId       String?
-  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  assignedTo     String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  userId         String?
+  user           User?       @relation(fields: [userId], references: [id])
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
+  id          String            @id @default(cuid())
   type        TransactionType
   category    String
   amount      Float
@@ -56,45 +54,45 @@ model Transaction {
   department  String
   status      TransactionStatus @default(PENDING)
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 model Investment {
-  id             String   @id @default(cuid())
+  id             String           @id @default(cuid())
   name           String
   assetClass     String
   amountInvested Float
   currentValue   Float
   roi            Float
-  risk           RiskLevel @default(MEDIUM)
+  risk           RiskLevel        @default(MEDIUM)
   status         InvestmentStatus @default(ACTIVE)
   description    String?
   fundManager    String?
   location       String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }
 
 model ProcurementRequest {
-  id          String   @id @default(cuid())
-  title       String
-  category    String
-  department  String
-  requestedBy String
-  amount      Float
-  priority    Priority @default(MEDIUM)
-  status      ProcurementStatus @default(DRAFT)
-  description String?
-  vendor      String?
-  deliveryDate DateTime?
+  id            String            @id @default(cuid())
+  title         String
+  category      String
+  department    String
+  requestedBy   String
+  amount        Float
+  priority      Priority          @default(MEDIUM)
+  status        ProcurementStatus @default(DRAFT)
+  description   String?
+  vendor        String?
+  deliveryDate  DateTime?
   justification String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 }
 
 model Shareholder {
-  id         String   @id @default(cuid())
+  id         String            @id @default(cuid())
   name       String
   company    String
   shares     Float
@@ -104,14 +102,14 @@ model Shareholder {
   status     ShareholderStatus @default(ACTIVE)
   email      String?
   phone      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
 }
 
 model Meeting {
-  id         String   @id @default(cuid())
+  id         String        @id @default(cuid())
   title      String
-  type       MeetingType @default(BOARD)
+  type       MeetingType   @default(BOARD)
   date       DateTime
   time       String
   duration   Int
@@ -121,20 +119,19 @@ model Meeting {
   location   String?
   agenda     String?
   notes      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 }
 
 model Notification {
-  id         String   @id @default(cuid())
-  userId     String
-  title      String
-  message    String
-  type       NotificationType @default(INFO)
-  read       Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Activity {
@@ -143,7 +140,6 @@ model Activity {
   action      String
   description String
   timestamp   DateTime @default(now())
-  
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

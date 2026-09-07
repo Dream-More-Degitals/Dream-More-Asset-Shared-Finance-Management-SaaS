@@ -5,6 +5,7 @@ import morgan from 'morgan'
 import compression from 'compression'
 import dotenv from 'dotenv'
 import authRoutes from './auth/auth.routes'
+import userRoutes from './users/users.routes'
 
 dotenv.config()
 
@@ -21,6 +22,7 @@ app.use(morgan('dev'))
 
 // Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/users', userRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -31,6 +33,24 @@ app.get('/api/health', (req, res) => {
   })
 })
 
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    success: false, 
+    message: 'Route not found' 
+  })
+})
+
+// Error handler
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('Server error:', err)
+  res.status(500).json({ 
+    success: false, 
+    message: 'Internal server error' 
+  })
+})
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
+  console.log(`📊 Health check: http://localhost:${PORT}/api/health`)
 })

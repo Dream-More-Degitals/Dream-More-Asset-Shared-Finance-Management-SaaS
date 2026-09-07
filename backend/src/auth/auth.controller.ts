@@ -93,3 +93,70 @@ export async function getMe(req: Request, res: Response) {
     res.status(500).json({ message: 'Internal server error' })
   }
 }
+
+export async function register(req: Request, res: Response) {
+  try {
+    const { name, email, password, department, role } = req.body
+
+    // Validate input
+    if (!name || !email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Name, email and password are required' 
+      })
+    }
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    })
+
+    if (existingUser) {
+      return res.status(409).json({ 
+        success: false, 
+        message: 'User with this email already exists' 
+      })
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role: role || 'PROCUREMENT_OFFICER',
+        department: department || null,
+        status: 'ACTIVE',
+      }
+    })
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role 
+      },
+      process.env.JWT_SECRET || 'default-secret-key',
+      { expiresIn: '7d' } as jwt.SignOptions
+    )
+
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user
+
+    res.status(201).json({
+      success: true,
+      token,
+      user: userWithoutPassword
+    })
+  } catch (error) {
+    console.error('Register error:', error)
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error' 
+    })
+  }
+}
