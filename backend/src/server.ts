@@ -5,6 +5,7 @@ import morgan from 'morgan'
 import compression from 'compression'
 import dotenv from 'dotenv'
 import authRoutes from './auth/auth.routes'
+import shareholderRoutes from './shareholders/shareholders.routes'
 
 dotenv.config()
 
@@ -21,7 +22,7 @@ app.use(morgan('dev'))
 
 // Routes
 app.use('/api/auth', authRoutes)
-
+app.use('/api/shareholders', shareholderRoutes)
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
