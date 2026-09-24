@@ -23,15 +23,24 @@ export async function authenticate(req: AuthRequest, res: Response, next: NextFu
       })
     }
 
-    const token = authHeader.split(' ')[1]
-    const secret = process.env.JWT_SECRET || 'default-secret-key'
-    
-    const decoded = jwt.verify(token, secret) as {
-      userId: string
-      email: string
-      role: string
-    }
+ const token = authHeader.split(' ')[1]
 
+const secret = process.env.JWT_SECRET
+
+if (!secret) {
+  console.error('JWT_SECRET is not configured')
+
+  return res.status(500).json({
+    success: false,
+    message: 'Server authentication configuration error'
+  })
+}
+
+const decoded = jwt.verify(token, secret) as {
+  userId: string
+  email: string
+  role: string
+}
     // Verify user still exists
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },

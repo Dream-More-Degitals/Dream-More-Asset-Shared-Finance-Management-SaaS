@@ -6,7 +6,7 @@ import compression from 'compression'
 import dotenv from 'dotenv'
 import authRoutes from './auth/auth.routes'
 import userRoutes from './users/users.routes'
-
+import procurementRoutes from './procurement/procurement.routes'
 dotenv.config()
 
 const app = express()
@@ -23,7 +23,7 @@ app.use(morgan('dev'))
 // Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
-
+app.use('/api/procurement', procurementRoutes)
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 

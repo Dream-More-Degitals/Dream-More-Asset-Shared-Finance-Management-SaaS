@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createProcurementRequest } from "@/services/procurementApi";
 import {
   ArrowLeft,
   Calendar,
@@ -44,7 +45,7 @@ type RequestDepartment =
   | "HR"
   | "Sales";
 
-type RequestPriority = "Low" | "Medium" | "High";
+type RequestPriority = "LOW" | "MEDIUM" | "HIGH";
 
 export default function CreateProcurementPage() {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function CreateProcurementPage() {
     title: "",
     category: "IT Equipment" as RequestCategory,
     department: "Engineering" as RequestDepartment,
-    priority: "Medium" as RequestPriority,
+priority: "MEDIUM" as RequestPriority,
     amount: "",
     description: "",
     vendor: "",
@@ -75,22 +76,72 @@ export default function CreateProcurementPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
     
-    if (!formData.title || !formData.amount || !formData.vendor) {
-      showToastMessage('error', 'Please fill in all required fields');
-      return;
-    }
+  //   if (!formData.title || !formData.amount || !formData.vendor) {
+  //     showToastMessage('error', 'Please fill in all required fields');
+  //     return;
+  //   }
 
+  //   setIsSubmitting(true);
+
+  //   setTimeout(() => {
+  //     setIsSubmitting(false);
+  //     showToastMessage('success', 'Purchase request created successfully!');
+  //     setTimeout(() => router.push('/procurement'), 1500);
+  //   }, 1500);
+  // };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (
+    !formData.title ||
+    !formData.amount ||
+    !formData.vendor ||
+    !formData.requestedBy
+  ) {
+    showToastMessage("error", "Please fill in all required fields");
+    return;
+  }
+
+  try {
     setIsSubmitting(true);
 
+    await createProcurementRequest({
+      title: formData.title,
+      category: formData.category,
+      department: formData.department,
+      requestedBy: formData.requestedBy,
+      amount: Number(formData.amount),
+      priority: formData.priority,
+      description: formData.description,
+      vendor: formData.vendor,
+      deliveryDate: formData.deliveryDate,
+      justification: formData.justification,
+    });
+
+    showToastMessage(
+      "success",
+      "Purchase request created successfully!"
+    );
+
     setTimeout(() => {
-      setIsSubmitting(false);
-      showToastMessage('success', 'Purchase request created successfully!');
-      setTimeout(() => router.push('/procurement'), 1500);
-    }, 1500);
-  };
+      router.push("/procurement");
+    }, 1000);
+  } catch (error) {
+    console.error("Create procurement error:", error);
+
+    showToastMessage(
+      "error",
+      error instanceof Error
+        ? error.message
+        : "Failed to create procurement request"
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleCancel = () => {
     router.push('/procurement');
@@ -118,7 +169,7 @@ export default function CreateProcurementPage() {
     "Sales",
   ];
 
-  const priorities: RequestPriority[] = ["Low", "Medium", "High"];
+const priorities: RequestPriority[] = ["LOW", "MEDIUM", "HIGH"];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">

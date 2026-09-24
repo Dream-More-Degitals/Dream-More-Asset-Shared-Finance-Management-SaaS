@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -27,7 +27,12 @@ import {
   CheckCircle,
   AlertTriangle,
 } from "lucide-react";
-
+import {
+  getProcurementRequests,
+  approveProcurementRequest,
+  completeProcurementRequest,
+  deleteProcurementRequest,
+} from "@/services/procurementApi";
 type ProcurementStatus = "Draft" | "Pending" | "Approved" | "Completed" | "Cancelled";
 
 type ProcurementRequest = {
@@ -106,6 +111,42 @@ const initialRequests: ProcurementRequest[] = [
   },
 ];
 
+function mapBackendRequest(req: any): ProcurementRequest {
+  return {
+    id: req.id,
+    title: req.title,
+    category: req.category,
+    department: req.department,
+    requestedBy: req.requestedBy,
+    date: new Date(req.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    }),
+    amount: `$${Number(req.amount).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`,
+    status:
+      req.status === "DRAFT"
+        ? "Draft"
+        : req.status === "PENDING"
+        ? "Pending"
+        : req.status === "APPROVED"
+        ? "Approved"
+        : req.status === "COMPLETED"
+        ? "Completed"
+        : "Cancelled",
+    priority:
+      req.priority === "HIGH"
+        ? "High"
+        : req.priority === "LOW"
+        ? "Low"
+        : "Medium",
+    icon: <Package className="h-4 w-4" />,
+  };
+}
+
 const statusStyles: Record<ProcurementStatus, string> = {
   Draft: "bg-slate-50 text-slate-600 border border-slate-200",
   Pending: "bg-yellow-50 text-yellow-700 border border-yellow-100",
@@ -124,7 +165,9 @@ const statusIcons: Record<ProcurementStatus, React.ReactNode> = {
 
 export default function ProcurementPage() {
   const router = useRouter();
-  const [requests, setRequests] = useState<ProcurementRequest[]>(initialRequests);
+  // const [requests, setRequests] = useState<ProcurementRequest[]>(initialRequests);
+  const [requests, setRequests] = useState<ProcurementRequest[]>([]);
+const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [selectedStatus, setSelectedStatus] = useState("Status: All");
   const [showToast, setShowToast] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
@@ -144,6 +187,30 @@ export default function ProcurementPage() {
     setShowToast({ type, message });
     setTimeout(() => setShowToast(null), 3000);
   };
+useEffect(() => {
+  const loadProcurementRequests = async () => {
+    try {
+      setIsLoading(true);
+
+      const data = await getProcurementRequests();
+
+      setRequests(data.map(mapBackendRequest));
+    } catch (error) {
+      console.error("Failed to load procurement requests:", error);
+
+      showToastMessage(
+        "error",
+        error instanceof Error
+          ? error.message
+          : "Failed to load procurement requests"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  loadProcurementRequests();
+}, []);
 
   // Export requests
   const handleExport = () => {
@@ -156,41 +223,87 @@ export default function ProcurementPage() {
   };
 
   // Delete request
-  const handleDeleteRequest = (id: string) => {
+const handleDeleteRequest = async (id: string) => {
+  try {
+    await deleteProcurementRequest(id);
+
     setRequests(requests.filter(req => req.id !== id));
     setShowDeleteModal(null);
-    showToastMessage('success', 'Request deleted successfully!');
-  };
+
+    showToastMessage("success", "Request deleted successfully!");
+  } catch (error) {
+    console.error("Delete error:", error);
+
+    showToastMessage(
+      "error",
+      error instanceof Error
+        ? error.message
+        : "Failed to delete request"
+    );
+  }
+};
 
   // Edit request
-  const handleEditRequest = (id: string) => {
-    showToastMessage('info', `Editing request ${id}`);
-  };
-
+// Edit request
+const handleEditRequest = (id: string) => {
+  router.push(`/procurement/${id}/edit`);
+};
   // View request
   const handleViewRequest = (id: string) => {
     goToRequestDetails(id);
   };
 
   // Approve request
-  const handleApproveRequest = (id: string) => {
-    setRequests(requests.map(req => 
-      req.id === id && req.status === 'Pending' 
-        ? { ...req, status: 'Approved' } 
-        : req
-    ));
-    showToastMessage('success', 'Request approved successfully!');
-  };
+const handleApproveRequest = async (id: string) => {
+  try {
+    const updatedRequest = await approveProcurementRequest(id);
+
+    setRequests(
+      requests.map((req) =>
+        req.id === id
+          ? mapBackendRequest(updatedRequest)
+          : req
+      )
+    );
+
+    showToastMessage("success", "Request approved successfully!");
+  } catch (error) {
+    console.error("Approve error:", error);
+
+    showToastMessage(
+      "error",
+      error instanceof Error
+        ? error.message
+        : "Failed to approve request"
+    );
+  }
+};
 
   // Complete request
-  const handleCompleteRequest = (id: string) => {
-    setRequests(requests.map(req => 
-      req.id === id && req.status === 'Approved' 
-        ? { ...req, status: 'Completed' } 
-        : req
-    ));
-    showToastMessage('success', 'Request marked as completed!');
-  };
+const handleCompleteRequest = async (id: string) => {
+  try {
+    const updatedRequest = await completeProcurementRequest(id);
+
+    setRequests(
+      requests.map((req) =>
+        req.id === id
+          ? mapBackendRequest(updatedRequest)
+          : req
+      )
+    );
+
+    showToastMessage("success", "Request marked as completed!");
+  } catch (error) {
+    console.error("Complete error:", error);
+
+    showToastMessage(
+      "error",
+      error instanceof Error
+        ? error.message
+        : "Failed to complete request"
+    );
+  }
+};
 
   // Filter functions
   const handleCategoryFilter = (category: string) => {
@@ -407,8 +520,27 @@ export default function ProcurementPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                {requests.map((req) => (
+             <tbody>
+  {isLoading ? (
+    <tr>
+      <td
+        colSpan={8}
+        className="px-3 py-8 text-center text-sm text-slate-500"
+      >
+        Loading procurement requests...
+      </td>
+    </tr>
+  ) : requests.length === 0 ? (
+    <tr>
+      <td
+        colSpan={8}
+        className="px-3 py-8 text-center text-sm text-slate-500"
+      >
+        No procurement requests found.
+      </td>
+    </tr>
+  ) : (
+    requests.map((req) => (
                   <tr
                     key={req.id}
                     className="border-b border-orange-100 last:border-b-0 hover:bg-slate-50 transition-colors"
@@ -491,8 +623,9 @@ export default function ProcurementPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
+                  ))
+  )}
+</tbody>
             </table>
           </div>
 

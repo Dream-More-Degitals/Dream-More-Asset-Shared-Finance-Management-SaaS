@@ -30,15 +30,21 @@ export async function login(req: Request, res: Response) {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role 
-      },
-      process.env.JWT_SECRET || 'default-secret-key',
-      { expiresIn: '7d' } as jwt.SignOptions
-    )
+   const secret = process.env.JWT_SECRET
+
+if (!secret) {
+  throw new Error('JWT_SECRET is not configured')
+}
+
+const token = jwt.sign(
+  { 
+    userId: user.id, 
+    email: user.email, 
+    role: user.role 
+  },
+  secret,
+  { expiresIn: '7d' } as jwt.SignOptions
+)
 
     // Update last login
     await prisma.user.update({
@@ -134,15 +140,21 @@ export async function register(req: Request, res: Response) {
     })
 
     // Generate JWT token
-    const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role 
-      },
-      process.env.JWT_SECRET || 'default-secret-key',
-      { expiresIn: '7d' } as jwt.SignOptions
-    )
+const secret = process.env.JWT_SECRET
+
+if (!secret) {
+  throw new Error('JWT_SECRET is not configured')
+}
+
+const token = jwt.sign(
+  { 
+    userId: user.id, 
+    email: user.email, 
+    role: user.role 
+  },
+  secret,
+  { expiresIn: '7d' } as jwt.SignOptions
+)
 
     // Return user without password
     const { password: _, ...userWithoutPassword } = user
